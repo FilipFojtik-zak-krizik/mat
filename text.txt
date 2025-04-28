@@ -1,0 +1,88 @@
+Dominik-Petricek-krizik/Maturita-Op
+
+
+
+SAMBA
+sudo dnf update -y
+sudo dnf install samba samba-client samba-common -y
+sudo mkdir -p /srv/samba/share
+sudo chmod -R 0777 /srv/samba/share
+sudo nano /etc/samba/smb.conf
+([Share]
+    path = /srv/samba/share
+    browsable = yes
+    writable = yes
+    guest ok = yes
+    read only = no)
+sudo smbpasswd -a tvoje_uzivatelske_jmeno
+
+sudo systemctl enable smb nmb
+sudo systemctl start smb nmb
+
+sudo firewall-cmd --permanent --add-service=samba
+sudo firewall-cmd --reload
+
+WS -> File Explorer - zadat
+\\192.168.50.XX\Share (linux ip)
+
+Ovládací panely → Programy a funkce → Zapnout nebo vypnout funkce systému Windows.
+
+Najdi položku SMB 1.0/CIFS File Sharing Support.
+
+
+SMB 1.0/CIFS Client (minimálně).
+
+OK → Restartuj počítač
+
+
+HTTP
+sudo dnf install httpd -y
+sudo systemctl enable httpd
+sudo systemctl start httpd
+sudo systemctl status httpd
+sudo firewall-cmd --permanent --add-port=80/tcp
+sudo firewall-cmd --permanent --add-port=8081/tcp
+sudo firewall-cmd --reload
+sudo mkdir -p /var/www/site1
+sudo mkdir -p /var/www/site2
+
+echo "Toto je SITE 1 (port 80)" | sudo tee /var/www/site1/index.html
+echo "Toto je SITE 2 (port 8081)" | sudo tee /var/www/site2/index.html
+sudo chown -R apache:apache /var/www/site1
+sudo chown -R apache:apache /var/www/site2
+sudo nano /etc/httpd/conf.d/site1.conf
+- obsah <VirtualHost *:80>
+    ServerAdmin admin@site1.local
+    DocumentRoot /var/www/site1
+    ServerName site1.local
+    ErrorLog /var/log/httpd/site1-error.log
+    CustomLog /var/log/httpd/site1-access.log combined
+</VirtualHost>
+8081 - sudo nano /etc/httpd/conf/httpd.conf
+řádek Listen 80 na Listen 8081
+poté sudo nano /etc/httpd/conf.d/site2.conf, přidat ->
+<VirtualHost *:8081>
+    ServerAdmin admin@site2.local
+    DocumentRoot /var/www/site2
+    ServerName site2.local
+    ErrorLog /var/log/httpd/site2-error.log
+    CustomLog /var/log/httpd/site2-access.log combined
+</VirtualHost>
+
+apache
+sudo systemctl restart httpd
+poté http://192.168.50.10 a 
+http://192.168.50.10:8081/
+
+
+POKDU NEFUNGUJE ping mirrors.fedoraproject.org
+ws server -> dns manager -> pravým -> properties -> forwarders - > přidat 1.1.1.1 jako dns
+
+https://support.gpsgate.com/hc/en-us/articles/360017075999-How-to-change-the-default-IIS-port-for-your-server-website
+https://www.kamatera.com/knowledgebase/configuring-iis-for-web-hosting-on-windows/
+
+https://www.redhat.com/en/blog/getting-started-samba
+
+
+
+
